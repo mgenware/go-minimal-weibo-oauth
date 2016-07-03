@@ -18,6 +18,7 @@ type OAuth struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURL  string
+	Token        *OAuthToken
 }
 
 type OAuthToken struct {
@@ -60,7 +61,7 @@ func (oauth *OAuth) GetRedirectionURL() string {
 	return urlStr
 }
 
-func (oauth *OAuth) GetToken(code string) (*OAuthToken, error) {
+func (oauth *OAuth) SetToken(code string) error {
 	resp, err := http.PostForm(AccessTokenURL,
 		url.Values{"client_id": {oauth.ClientID},
 			"client_secret": {oauth.ClientSecret},
@@ -68,25 +69,29 @@ func (oauth *OAuth) GetToken(code string) (*OAuthToken, error) {
 			"code":          {code},
 			"redirect_uri":  {oauth.RedirectURL}})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	ret := &OAuthToken{}
-	err = json.Unmarshal(body, ret)
+	token := &OAuthToken{}
+	err = json.Unmarshal(body, token)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return ret, nil
+	oauth.Token = token
+	return nil
 }
 
-func (oauth *OAuth) GetUserInfo(token string, uid string) (*UserInfo, error) {
-	qs := url.Values{"access_token": {token},
+func (oauth *OAuth) GetUserInfo(uid string) (*UserInfo, error) {
+	if oauth.Token == nil {
+		return nil, errors.New("Empty token")
+	}
+	qs := url.Values{"access_token": {oauth.Token.AccessToken},
 		"uid": {uid}}
 	urlStr := UserInfoURL + "?" + qs.Encode()
 
