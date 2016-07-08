@@ -57,7 +57,7 @@ func NewWeiboOAuth(clientID, clientSecret, redirectURL string) (*OAuth, error) {
 	return oauth, nil
 }
 
-func (oauth *OAuth) GetRedirectionURL() string {
+func (oauth *OAuth) GetAuthorizeURL() string {
 	qs := url.Values{"client_id": {oauth.ClientID},
 		"redirect_uri": {oauth.RedirectURL}}
 	urlStr := AuthURL + "?" + qs.Encode()
