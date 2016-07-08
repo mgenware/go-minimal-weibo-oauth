@@ -57,11 +57,13 @@ func NewWeiboOAuth(clientID, clientSecret, redirectURL string) (*OAuth, error) {
 	return oauth, nil
 }
 
-func (oauth *OAuth) GetAuthorizeURL() string {
-	qs := url.Values{"client_id": {oauth.ClientID},
-		"redirect_uri": {oauth.RedirectURL}}
+func (oauth *OAuth) GetAuthorizationURL(state string) (string, error) {
+	qs := url.Values{
+		"client_id":    {oauth.ClientID},
+		"redirect_uri": {oauth.RedirectURL},
+		"state":        {state}}
 	urlStr := AuthURL + "?" + qs.Encode()
-	return urlStr
+	return urlStr, nil
 }
 
 func (oauth *OAuth) GetAccessToken(code string) (*OAuthToken, error) {
