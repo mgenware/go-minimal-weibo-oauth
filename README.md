@@ -1,5 +1,5 @@
 # go-minimal-weibo-oauth
-A minimal library for Weibo oauth
+A minimal library for Weibo OAuth. Tested on Go 1.6.
 
 ## Installation
 ```sh
