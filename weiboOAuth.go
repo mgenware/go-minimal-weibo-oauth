@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 )
+
+var Logging bool
 
 const (
 	AuthURL        = "https://api.weibo.com/oauth2/authorize"
@@ -70,6 +73,9 @@ func (oauth *OAuth) GetAccessToken(code string) (*OAuthToken, error) {
 	if code == "" {
 		return nil, errors.New("code cannot be empty")
 	}
+	if Logging {
+		logReq("POST: " + AccessTokenURL)
+	}
 	resp, err := http.PostForm(AccessTokenURL,
 		url.Values{"client_id": {oauth.ClientID},
 			"client_secret": {oauth.ClientSecret},
@@ -84,6 +90,9 @@ func (oauth *OAuth) GetAccessToken(code string) (*OAuthToken, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	if Logging {
+		logResp(string(body))
 	}
 
 	token := &OAuthToken{}
@@ -104,6 +113,9 @@ func (oauth *OAuth) GetUserInfo(accessToken, uid string) (*UserInfo, error) {
 	qs := url.Values{"access_token": {accessToken},
 		"uid": {uid}}
 	urlStr := UserInfoURL + "?" + qs.Encode()
+	if Logging {
+		logReq("GET: " + urlStr)
+	}
 
 	resp, err := http.Get(urlStr)
 	if err != nil {
@@ -115,6 +127,9 @@ func (oauth *OAuth) GetUserInfo(accessToken, uid string) (*UserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	if Logging {
+		logResp(string(body))
+	}
 
 	ret := &UserInfo{}
 	err = json.Unmarshal(body, ret)
@@ -122,4 +137,11 @@ func (oauth *OAuth) GetUserInfo(accessToken, uid string) (*UserInfo, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func logReq(content string) {
+	log.Print("Request: " + content)
+}
+func logResp(content string) {
+	log.Print("Response: " + content)
 }
