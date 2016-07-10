@@ -97,11 +97,11 @@ func (oauth *OAuth) GetAccessToken(code string) (*OAuthToken, error) {
 	return token, err
 }
 
-func (oauth *OAuth) GetUserInfo(token *OAuthToken, uid string) (*UserInfo, error) {
-	if token == nil {
-		return nil, errors.New("token cannot be nil")
+func (oauth *OAuth) GetUserInfo(accessToken, uid string) (*UserInfo, error) {
+	if accessToken == "" {
+		return nil, errors.New("accessToken cannot be empty")
 	}
-	qs := url.Values{"access_token": {token.AccessToken},
+	qs := url.Values{"access_token": {accessToken},
 		"uid": {uid}}
 	urlStr := UserInfoURL + "?" + qs.Encode()
 
